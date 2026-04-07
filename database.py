@@ -1,6 +1,6 @@
 import sqlite3
 
-# ✅ IMPORTANT: use /tmp for serverless
+# ✅ Use /tmp for Render (important)
 conn = sqlite3.connect("/tmp/clinic.db", check_same_thread=False)
 cursor = conn.cursor()
 

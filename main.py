@@ -18,7 +18,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ------------------ TRIAGE ------------------
+# ------------------ TRIAGE FLOW ------------------
+
+@app.post("/triage/start")
+def start_triage():
+    return {"question": "Do you have chest pain?", "answers": {}}
+
+
+@app.post("/triage/next")
+def next_question(answers: dict = Body(...)):
+    question = get_next_question(answers)
+
+    if question:
+        return {"question": question, "answers": answers}
+
+    symptoms = build_symptoms_from_answers(answers)
+
+    return {
+        "message": "Triage complete",
+        "symptoms": symptoms,
+        "answers": answers
+    }
+
 
 @app.post("/triage/submit")
 def submit_triage(name: str, age: int, answers: dict = Body(...)):
@@ -44,7 +65,7 @@ def submit_triage(name: str, age: int, answers: dict = Body(...)):
         )
         conn.commit()
 
-        # ✅ FIXED ARGUMENT ORDER
+        # ✅ FIXED
         summary = generate_summary(name, age, symptoms, score, priority, similar_case)
 
         return {

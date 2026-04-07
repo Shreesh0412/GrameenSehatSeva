@@ -51,7 +51,7 @@ def get_action(priority):
     if priority == "emergency":
         return "Immediate hospital visit / ambulance recommended"
     elif priority == "priority":
-        return "Visit clinic soon or take early consultation"
+        return "Visit clinic soon"
     else:
         return "Basic teleconsultation is sufficient"
 
@@ -60,7 +60,6 @@ def get_similar_case(symptoms, age):
     try:
         with open(DATASET_PATH, "r") as file:
             reader = csv.DictReader(file)
-
             for row in reader:
                 if any(word in symptoms for word in row["symptoms"].split()):
                     return row
@@ -80,12 +79,14 @@ def generate_summary(name, age, symptoms, score, priority, similar_case=None):
     elif priority == "priority":
         summary += "Needs early consultation. "
     else:
-        summary += "Condition appears stable. "
+        summary += "Condition stable. "
 
     if similar_case:
         summary += f"Similar case: {similar_case['symptoms']}."
 
     return summary
+
+
 def get_next_question(answers):
     questions = [
         "Do you have chest pain?",
@@ -101,7 +102,13 @@ def get_next_question(answers):
 
     return None
 
+
+# ✅ FIXED: supports Quick Add + normal flow
 def build_symptoms_from_answers(answers):
+    # 🔥 Quick Add support
+    if "symptoms" in answers:
+        return answers["symptoms"]
+
     symptoms = []
 
     if answers.get("Do you have chest pain?") == "yes":
