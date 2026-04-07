@@ -86,7 +86,20 @@ def generate_summary(name, age, symptoms, score, priority, similar_case=None):
         summary += f"Similar case: {similar_case['symptoms']}."
 
     return summary
+def get_next_question(answers):
+    questions = [
+        "Do you have chest pain?",
+        "Do you have breathing issues?",
+        "Do you have fever?",
+        "Do you have headache?",
+        "Are you unconscious?"
+    ]
 
+    for q in questions:
+        if q not in answers:
+            return q
+
+    return None
 
 def build_symptoms_from_answers(answers):
     symptoms = []
