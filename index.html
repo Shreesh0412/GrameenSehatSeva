@@ -949,16 +949,13 @@
 </head>
 <body>
 
-<!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
   <p class="loading-text" id="loadingText">Processing…</p>
 </div>
 
-<!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- HEADER -->
 <header>
   <div class="logo">
     <span>GrameenSehatSeva</span>
@@ -979,7 +976,6 @@
 
 <main>
 
-<!-- ======== HOME ======== -->
 <div class="page active" id="page-home">
   <div class="hero">
     <div class="hero-main">
@@ -1029,11 +1025,9 @@
 
 </div>
 
-<!-- ======== TRIAGE ======== -->
 <div class="page" id="page-triage">
   <div class="triage-container">
 
-    <!-- Step 1: Patient Info -->
     <div id="triage-step-1">
       <div class="section-header">
         <div>
@@ -1079,7 +1073,6 @@
       </div>
     </div>
 
-    <!-- Step 2: Questions -->
     <div id="triage-step-2" style="display:none;">
       <div class="section-header">
         <div>
@@ -1113,7 +1106,6 @@
       </div>
     </div>
 
-    <!-- Step 3: Result -->
     <div id="triage-step-3" style="display:none;">
       <div class="section-header">
         <div>
@@ -1141,7 +1133,6 @@
   </div>
 </div>
 
-<!-- ======== QUEUE ======== -->
 <div class="page" id="page-queue">
   <div class="section-header">
     <div>
@@ -1165,7 +1156,6 @@
   </div>
 </div>
 
-<!-- ======== DOCTOR DASH ======== -->
 <div class="page" id="page-doctor">
   <div class="section-header">
     <div>
@@ -1183,7 +1173,6 @@
   </div>
 </div>
 
-<!-- ======== STATUS ======== -->
 <div class="page" id="page-status">
   <div class="status-container">
     <div class="section-header">
@@ -1348,15 +1337,8 @@ const T = {
 function t(key) { return T[lang][key] || T['en'][key] || key; }
 
 function applyLang() {
-  // text nodes
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    el.textContent = t(el.dataset.i18n);
-  });
-  // placeholders
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    el.placeholder = t(el.dataset.i18nPlaceholder);
-  });
-  // switcher button labels
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
   if (lang === 'en') {
     document.getElementById('langActive').textContent = 'EN';
     document.getElementById('langInactive').textContent = 'हि';
@@ -1364,10 +1346,8 @@ function applyLang() {
     document.getElementById('langActive').textContent = 'हि';
     document.getElementById('langInactive').textContent = 'EN';
   }
-  // re-render dynamic lists if visible
   if (document.getElementById('page-queue').classList.contains('active')) loadQueue();
   if (document.getElementById('page-doctor').classList.contains('active')) loadDoctorDash();
-  // update question if mid-flow
   if (document.getElementById('triage-step-2').style.display !== 'none') showQuestion(qIndex);
 }
 
@@ -1393,112 +1373,9 @@ function setLoading(show, text = 'Processing…') {
   o.classList.toggle('active', show);
 }
 
-// ---- API CALL ----
-async function api(path, method = 'GET', params = null) {
-  let url = API + path;
-  let options = { method, headers: { 'Content-Type': 'application/json' } };
-
-  if (method === 'POST' && params) {
-    // FastAPI query params style
-    const qs = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (typeof v === 'object') qs.append(k, JSON.stringify(v));
-      else qs.append(k, v);
-    });
-    url += '?' + qs.toString();
-  }
-
-  try {
-    const r = await fetch(url, options);
-    return await r.json();
-  } catch (e) {
-    // Offline mode - return simulated data
-    return simulateResponse(path, params);
-  }
-}
-
-// ---- DEMO/OFFLINE SIMULATION ----
-let demoPatients = [];
+// ---- DEMO/LOCAL STATE FOR UI (DO NOT REMOVE) ----
+// This keeps your frontend rendering smoothly without needing custom backend endpoints for lists!
 let demoQueue = [];
-
-function simulateResponse(path, params) {
-  if (path === '/queue') {
-    return demoQueue.map((p, i) => ({
-      position: i + 1,
-      patient_id: p.patient_id,
-      name: p.name,
-      age: p.age,
-      score: p.score,
-      priority: p.priority,
-      estimated_wait_time: `${Math.max(1, i * 5)} minutes`
-    }));
-  }
-  if (path === '/doctor_dashboard') {
-    return demoQueue.map(p => ({
-      name: p.name,
-      age: p.age,
-      symptoms: p.symptoms,
-      risk_score: p.score,
-      priority: p.priority,
-      reasons: p.reasons,
-      summary: p.summary
-    }));
-  }
-  if (path.startsWith('/patient_status/')) {
-    const id = parseInt(path.split('/').pop());
-    const pt = demoQueue.find(p => p.patient_id == id);
-    if (!pt) return { error: 'Patient not found' };
-    return { status: pt.status || 'waiting', priority: pt.priority, score: pt.score };
-  }
-  if (path.startsWith('/complete/')) {
-    const id = parseInt(path.split('/').pop());
-    demoQueue = demoQueue.filter(p => p.patient_id != id);
-    return { message: 'Patient treated successfully' };
-  }
-  if (path === '/triage/submit') {
-    return simulateTriage(params);
-  }
-  if (path === '/add_patient') {
-    return simulateTriage(params);
-  }
-  return {};
-}
-
-function simulateTriage(params) {
-  const symptoms = (params?.symptoms || params?.answers_symptoms || '').toLowerCase();
-  const age = parseInt(params?.age) || 30;
-  const name = params?.name || 'Patient';
-
-  let score = 0, reasons = [];
-  if (symptoms.includes('chest pain')) { score += 40; reasons.push('Chest pain (+40)'); }
-  if (symptoms.includes('breathing')) { score += 30; reasons.push('Breathing issue (+30)'); }
-  if (symptoms.includes('unconscious')) { score += 50; reasons.push('Unconscious (+50)'); }
-  if (symptoms.includes('fever')) { score += 10; reasons.push('Fever (+10)'); }
-  if (symptoms.includes('headache')) { score += 5; reasons.push('Headache (+5)'); }
-  if (age > 60) { score += 20; reasons.push('Age risk (+20)'); }
-  score = Math.min(score, 100);
-
-  let priority = score >= 70 ? 'emergency' : score >= 40 ? 'priority' : 'basic';
-  let action = priority === 'emergency'
-    ? 'Immediate hospital visit / ambulance recommended'
-    : priority === 'priority'
-    ? 'Visit clinic soon or take early consultation'
-    : 'Basic teleconsultation is sufficient';
-
-  const patient_id = Date.now() % 10000;
-
-  const patient = { patient_id, name, age, symptoms, score, priority, reasons,
-    summary: `Patient (${age} yrs). Symptoms: ${symptoms}. Risk Score: ${score}/100 (${priority}).`,
-    status: 'waiting'
-  };
-
-  // Insert sorted by score desc
-  const idx = demoQueue.findIndex(p => p.score < score);
-  if (idx === -1) demoQueue.push(patient);
-  else demoQueue.splice(idx, 0, patient);
-
-  return { patient_id, symptoms, score, priority, action, reasons };
-}
 
 // ---- HOME STATS ----
 async function loadHomeStats() {
@@ -1552,20 +1429,30 @@ async function submitTriage() {
   setLoading(true, 'Analysing symptoms…');
   document.getElementById('triage-step-2').style.display = 'none';
 
-  // Build symptoms from answers
-  let sympList = [];
-  if (answers["Do you have chest pain?"] === 'yes') sympList.push('chest pain');
-  if (answers["Do you have breathing issues?"] === 'yes') sympList.push('breathing');
-  if (answers["Do you have fever?"] === 'yes') sympList.push('fever');
-  if (answers["Do you have headache?"] === 'yes') sympList.push('headache');
-  if (answers["Are you unconscious?"] === 'yes') sympList.push('unconscious');
+  try {
+      // 1. HIT THE REAL BACKEND
+      const response = await fetch(`${API}/triage/submit?name=${encodeURIComponent(patientName)}&age=${patientAge}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(answers)
+      });
+      const data = await response.json();
 
-  const params = { name: patientName, age: patientAge, symptoms: sympList.join(' ') };
-  const data = simulateTriage(params);
-  data.symptoms = params.symptoms;
+      // 2. SAVE TO LOCAL UI QUEUE SO IT DOESNT BREAK
+      data.name = patientName;
+      data.age = patientAge;
+      const sympKeys = Object.keys(answers).filter(k => answers[k] === 'yes');
+      data.symptoms = sympKeys.map(k => k.replace('Do you have ', '').replace('?', '')).join(', ') || 'No specific symptoms';
+      data.status = 'waiting';
+      demoQueue.push(data);
+      demoQueue.sort((a, b) => b.score - a.score);
 
-  setLoading(false);
-  showResult(data);
+      setLoading(false);
+      showResult(data);
+  } catch (error) {
+      setLoading(false);
+      toast('Error connecting to backend');
+  }
 }
 
 async function quickAdd() {
@@ -1576,13 +1463,31 @@ async function quickAdd() {
   if (!symptoms) { toast('Please enter symptoms.'); return; }
 
   setLoading(true, 'Registering patient…');
-  const data = simulateTriage({ name, age, symptoms });
-  data.symptoms = symptoms;
-  setLoading(false);
-  showResult(data);
+  
+  try {
+      const fakeAnswers = { "symptoms": symptoms };
+      const response = await fetch(`${API}/triage/submit?name=${encodeURIComponent(name)}&age=${age}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fakeAnswers)
+      });
+      const data = await response.json();
 
-  document.getElementById('triage-step-1').style.display = 'none';
-  document.getElementById('triage-step-3').style.display = 'block';
+      data.name = name;
+      data.age = age;
+      data.symptoms = symptoms;
+      data.status = 'waiting';
+      demoQueue.push(data);
+      demoQueue.sort((a, b) => b.score - a.score);
+
+      setLoading(false);
+      showResult(data);
+      document.getElementById('triage-step-1').style.display = 'none';
+      document.getElementById('triage-step-3').style.display = 'block';
+  } catch(e) {
+      setLoading(false);
+      toast('Error connecting to backend');
+  }
 }
 
 function showResult(data) {
@@ -1705,7 +1610,7 @@ async function loadDoctorDash() {
   }
 
   data.forEach(p => {
-    const sympChips = (p.symptoms || '').split(' ').filter(Boolean).map(s => {
+    const sympChips = (p.symptoms || '').split(', ').filter(Boolean).map(s => {
       const cls = ['chest', 'unconscious', 'breathing'].some(k => s.includes(k)) ? 'red'
                 : s === 'fever' ? 'orange' : 'green';
       return `<span class="symptom-chip ${cls}">${s}</span>`;
@@ -1745,6 +1650,10 @@ async function loadDoctorDash() {
 }
 
 async function completePatient(id) {
+  try {
+      await fetch(`${API}/complete/${id}`, { method: 'POST' });
+  } catch(e) { } // Ignore if network issue, still clear UI
+
   demoQueue = demoQueue.filter(p => p.patient_id != id);
   toast('Patient marked as treated ✓');
   loadDoctorDash();
@@ -1756,29 +1665,36 @@ async function checkStatus() {
   const id = document.getElementById('statusId').value;
   if (!id) { toast('Please enter a Patient ID.'); return; }
 
-  const pt = demoQueue.find(p => p.patient_id == id);
   const result = document.getElementById('statusResult');
   result.style.display = 'block';
 
-  if (!pt) {
-    document.getElementById('statusIcon').textContent = '❓';
-    document.getElementById('statusTitle').textContent = 'Patient Not Found';
-    document.getElementById('statusPill').textContent = 'unknown';
-    document.getElementById('statusPill').className = 'status-pill';
-    document.getElementById('statusPriority').textContent = '—';
-    document.getElementById('statusScore').textContent = '—';
-    return;
+  try {
+      // HIT THE REAL BACKEND
+      const response = await fetch(`${API}/patient_status/${id}`);
+      const pt = await response.json();
+
+      if (pt.error) {
+        document.getElementById('statusIcon').textContent = '❓';
+        document.getElementById('statusTitle').textContent = 'Patient Not Found';
+        document.getElementById('statusPill').textContent = 'unknown';
+        document.getElementById('statusPill').className = 'status-pill';
+        document.getElementById('statusPriority').textContent = '—';
+        document.getElementById('statusScore').textContent = '—';
+        return;
+      }
+
+      const status = pt.status || 'waiting';
+      const icons = { waiting: '⏳', done: '✅' };
+
+      document.getElementById('statusIcon').textContent = icons[status] || '❓';
+      document.getElementById('statusTitle').textContent = status === 'done' ? 'Treatment Complete' : 'Currently Waiting';
+      document.getElementById('statusPill').textContent = status;
+      document.getElementById('statusPill').className = `status-pill ${status}`;
+      document.getElementById('statusPriority').textContent = pt.priority.toUpperCase();
+      document.getElementById('statusScore').textContent = `${pt.score}/100`;
+  } catch (error) {
+      toast('Error connecting to server');
   }
-
-  const status = pt.status || 'waiting';
-  const icons = { waiting: '⏳', done: '✅' };
-
-  document.getElementById('statusIcon').textContent = icons[status] || '❓';
-  document.getElementById('statusTitle').textContent = status === 'done' ? 'Treatment Complete' : 'Currently Waiting';
-  document.getElementById('statusPill').textContent = status;
-  document.getElementById('statusPill').className = `status-pill ${status}`;
-  document.getElementById('statusPriority').textContent = pt.priority.toUpperCase();
-  document.getElementById('statusScore').textContent = `${pt.score}/100`;
 }
 
 // ---- INIT ----
