@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrameenSehatSeva — Rural Clinic System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0ede8;
+    --surface: #ffffff;
+    --surface2: #f7f5f2;
+    --border: #e2ddd6;
+    --text: #1a1714;
+    --text2: #5c564f;
+    --text3: #9c958e;
+    --accent: #2d6a4f;
+    --accent-light: #d8f3dc;
+    --warn: #e07b39;
+    --warn-light: #fde8d6;
+    --danger: #c1292e;
+    --danger-light: #fde8e8;
+    --info: #1a6896;
+    --info-light: #dceefb;
+    --em-color: #c1292e;
+    --pri-color: #e07b39;
+    --bas-color: #2d6a4f;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.13);
+    --transition: 0.22s cubic-bezier(.4,0,.2,1);
+  }
+
+  .low-data {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface2: #fafafa;
+    --border: #ddd;
+    --text: #000;
+    --text2: #333;
+    --text3: #666;
+    --accent: #000;
+    --accent-light: #f0f0f0;
+    --warn: #555;
+    --warn-light: #f0f0f0;
+    --danger: #000;
+    --danger-light: #f0f0f0;
+    --info: #333;
+    --info-light: #f0f0f0;
+    --em-color: #000;
+    --pri-color: #444;
+    --bas-color: #222;
+    --shadow: none;
+    --shadow-lg: none;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    background: var(--surface);
+    border-bottom: 1.5px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), #52b788, var(--warn), var(--accent));
+    background-size: 200% 100%;
+    animation: shimmer 4s linear infinite;
+  }
+
+  .low-data header::after { display: none; }
+
+  @keyframes shimmer { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-icon {
+    width: 42px;
+    height: 42px;
+    background: var(--accent);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 2px 8px rgba(45,106,79,0.3);
+  }
+
+  .logo-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text3);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  nav {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text2);
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all var(--transition);
+    position: relative;
+  }
+
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .nav-btn.active { background: var(--accent-light); color: var(--accent); }
+
+  .lang-switcher {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--border);
+    padding: 7px 16px;
+    border-radius: 99px;
+    background: var(--surface);
+    transition: all var(--transition);
+    user-select: none;
+    letter-spacing: 0.5px;
+  }
+
+  .lang-switcher:hover { border-color: var(--accent); }
+
+  .lang-active {
+    color: var(--accent);
+  }
+
+  .lang-sep {
+    color: var(--border);
+    font-weight: 300;
+  }
+
+  .lang-inactive {
+    color: var(--text3);
+    font-weight: 500;
+  }
+
+  /* ---- MAIN LAYOUT ---- */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px;
+    transition: all var(--transition);
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .card-sub {
+    font-size: 0.82rem;
+    color: var(--text3);
+    margin-bottom: 20px;
+  }
+
+  /* ---- HOME ---- */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+
+  .hero-main {
+    background: var(--accent);
+    color: white;
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .low-data .hero-main {
+    background: var(--surface);
+    color: var(--text);
+    border: 2px solid #000;
+  }
+
+  .hero-main::before {
+    content: '';
+    position: absolute;
+    right: -30px;
+    top: -30px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 50%;
+  }
+
+  .hero-main h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .hero-main p {
+    font-size: 1rem;
+    opacity: 0.85;
+    line-height: 1.65;
+    margin-bottom: 28px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 20px;
+  }
+
+  .hero-stat {
+    background: rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+
+  .low-data .hero-stat { background: #f0f0f0; }
+
+  .hero-stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    display: block;
+  }
+
+  .hero-stat-label {
+    font-size: 0.72rem;
+    opacity: 0.75;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .action-tile {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+  }
+
+  .action-tile:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  .low-data .action-tile:hover { transform: none; box-shadow: none; }
+
+  .action-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .action-icon.green { background: var(--accent-light); }
+  .action-icon.orange { background: var(--warn-light); }
+  .action-icon.blue { background: var(--info-light); }
+
+  .action-text h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .action-text .hindi {
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 3px;
+    opacity: 0.8;
+  }
+
+  .action-text p {
+    font-size: 0.8rem;
+    color: var(--text3);
+    line-height: 1.4;
+  }
+
+  /* ---- TRIAGE FORM ---- */
+  .triage-container {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text3);
+    transition: all var(--transition);
+    background: var(--surface);
+  }
+
+  .step-dot.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .step-dot.done { border-color: var(--accent); background: var(--accent); color: white; }
+
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    transition: background var(--transition);
+  }
+
+  .step-line.done { background: var(--accent); }
+
+  .form-group { margin-bottom: 18px; }
+
+  label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text2);
+    margin-bottom: 7px;
+    letter-spacing: 0.2px;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color var(--transition);
+    outline: none;
+  }
+
+  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 26px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all var(--transition);
+    letter-spacing: 0.2px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .low-data .btn-primary:hover { transform: none; }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text2);
+    border-color: var(--border);
+  }
+
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+  }
+
+  /* ---- QUESTIONS ---- */
+  .question-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .question-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+
+  .question-hint {
+    font-size: 0.88rem;
+    color: var(--text3);
+    margin-bottom: 30px;
+    font-style: italic;
+  }
+
+  .answer-btns {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .answer-btn {
+    padding: 18px 48px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: all var(--transition);
+    min-width: 130px;
+  }
+
+  .answer-btn.yes:hover, .answer-btn.yes.selected {
+    background: var(--danger-light);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .answer-btn.no:hover, .answer-btn.no.selected {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .q-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .q-progress-label {
+    font-size: 0.78rem;
+    color: var(--text3);
+    font-weight: 500;
+  }
+
+  .progress-bar {
+    height: 5px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    flex: 1;
+    margin: 0 12px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  /* ---- RESULT ---- */
+  .result-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 20px;
+  }
+
+  .result-header {
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .result-header.emergency { background: var(--danger-light); border-bottom: 2px solid var(--danger); }
+  .result-header.priority { background: var(--warn-light); border-bottom: 2px solid var(--warn); }
+  .result-header.basic { background: var(--accent-light); border-bottom: 2px solid var(--accent); }
+
+  .priority-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .priority-badge.emergency { background: var(--danger); color: white; }
+  .priority-badge.priority { background: var(--warn); color: white; }
+  .priority-badge.basic { background: var(--bas-color); color: white; }
+
+  .score-ring {
+    width: 72px;
+    height: 72px;
+    position: relative;
+  }
+
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .score-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--text);
+  }
+
+  .result-body { padding: 24px 28px; }
+
+  .reason-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+  .reason-tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text2);
+  }
+
+  .action-box {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    margin-top: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .action-box .icon { font-size: 1.4rem; margin-top: 2px; }
+
+  .action-box h4 { font-size: 0.82rem; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+  .action-box p { font-size: 0.88rem; color: var(--text); font-weight: 500; }
+
+  /* ---- QUEUE ---- */
+  .queue-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .queue-item {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 36px 1fr auto auto auto;
+    align-items: center;
+    gap: 16px;
+    transition: all var(--transition);
+    box-shadow: var(--shadow);
+  }
+
+  .queue-item:hover { transform: translateX(3px); }
+  .low-data .queue-item:hover { transform: none; }
+
+  .queue-pos {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text2);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .queue-name { font-weight: 600; font-size: 0.95rem; }
+  .queue-meta { font-size: 0.78rem; color: var(--text3); }
+
+  .queue-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text2);
+  }
+
+  .queue-wait {
+    font-size: 0.78rem;
+    color: var(--text3);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .queue-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text3);
+  }
+
+  .queue-empty .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .queue-empty p { font-size: 0.9rem; }
+
+  /* ---- DOCTOR DASH ---- */
+  .doctor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .doctor-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: all var(--transition);
+  }
+
+  .doctor-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .low-data .doctor-card:hover { transform: none; box-shadow: none; }
+
+  .doctor-card-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .patient-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    border: 1.5px solid var(--border);
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    color: var(--text2);
+  }
+
+  .doctor-card-body { padding: 16px 20px; }
+
+  .symptom-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+
+  .symptom-chip {
+    font-size: 0.74rem;
+    padding: 3px 10px;
+    border-radius: 99px;
+    border: 1.5px solid;
+    font-weight: 500;
+  }
+
+  .symptom-chip.red { border-color: var(--danger); color: var(--danger); background: var(--danger-light); }
+  .symptom-chip.orange { border-color: var(--warn); color: var(--warn); background: var(--warn-light); }
+  .symptom-chip.green { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+  .summary-text {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--text2);
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .complete-btn {
+    width: 100%;
+    padding: 9px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .complete-btn:hover { background: var(--accent); color: white; }
+
+  /* ---- STATUS CHECK ---- */
+  .status-container { max-width: 480px; margin: 0 auto; }
+
+  .status-display {
+    text-align: center;
+    padding: 40px 24px;
+  }
+
+  .status-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+
+  .status-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+  }
+
+  .status-pill {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .status-pill.waiting { background: var(--warn-light); color: var(--warn); }
+  .status-pill.done { background: var(--accent-light); color: var(--accent); }
+
+  /* ---- SECTION HEADER ---- */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--text);
+  }
+
+  .section-sub {
+    font-size: 0.82rem;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  /* ---- TOAST ---- */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toast {
+    background: var(--text);
+    color: var(--surface);
+    padding: 12px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s ease;
+    max-width: 300px;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- SPINNER ---- */
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .loading-overlay.active { display: flex; }
+
+  .loading-spinner {
+    width: 44px;
+    height: 44px;
+    border: 4px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text { font-size: 0.9rem; color: var(--text2); font-weight: 500; }
+
+  /* ---- TAG ---- */
+  .ps-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--text3);
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 768px) {
+    .hero { grid-template-columns: 1fr; }
+    .doctor-grid { grid-template-columns: 1fr; }
+    header { padding: 0 16px; }
+    main { padding: 20px 14px; }
+    nav .nav-btn span { display: none; }
+    .hero-main h1 { font-size: 1.5rem; }
+    .queue-item { grid-template-columns: 32px 1fr auto; }
+    .queue-score, .queue-wait { display: none; }
+  }
+
+  /* ---- DIVIDER ---- */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ---- PATIENT ID DISPLAY ---- */
+  .pid-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 2px;
+    background: var(--accent-light);
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1.5px solid var(--accent);
+    margin: 8px 0 16px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
+
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label { color: var(--text3); font-weight: 500; }
+  .info-row .val { color: var(--text); font-weight: 600; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <p class="loading-text" id="loadingText">Processing…</p>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span>GrameenSehatSeva</span>
+  </div>
+  <nav>
+    <button class="nav-btn active" onclick="navigate('home')" id="nav-home">🏠 <span data-i18n="nav_home">Home</span></button>
+    <button class="nav-btn" onclick="navigate('triage')" id="nav-triage">📋 <span data-i18n="nav_triage">Triage</span></button>
+    <button class="nav-btn" onclick="navigate('queue')" id="nav-queue">👥 <span data-i18n="nav_queue">Queue</span></button>
+    <button class="nav-btn" onclick="navigate('doctor')" id="nav-doctor">👨‍⚕️ <span data-i18n="nav_doctor">Doctor</span></button>
+    <button class="nav-btn" onclick="navigate('status')" id="nav-status">🔍 <span data-i18n="nav_status">Status</span></button>
+  </nav>
+  <div class="lang-switcher" onclick="toggleLang()" id="langBtn" title="Switch Language">
+    <span class="lang-active" id="langActive">EN</span>
+    <span class="lang-sep">|</span>
+    <span class="lang-inactive" id="langInactive">हि</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ======== HOME ======== -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-main">
+      <h1>GrameenSehatSeva</h1>
+      <p style="font-size:0.82rem;opacity:0.75;margin-bottom:4px;font-style:italic;" data-i18n="hero_tagline">ग्रामीण स्वास्थ्य सेवा</p>
+      <p data-i18n="hero_sub">Aapka swagat hai. Hum aapki madad karenge — apni takleef batayein, hum doctor tak pahunchayenge.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="stat-waiting">—</span>
+          <span class="hero-stat-label" data-i18n="stat_waiting">Waiting</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="stat-emergency">—</span>
+          <span class="hero-stat-label" data-i18n="stat_emergency">Emergency</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="stat-basic">—</span>
+          <span class="hero-stat-label" data-i18n="stat_basic">Basic</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <div class="action-tile" onclick="navigate('triage')">
+        <div class="action-icon green">📋</div>
+        <div class="action-text">
+          <h3 data-i18n="tile1_title">Register Patient</h3>
+          <p data-i18n="tile1_sub">Answer a few simple health questions to get your priority number</p>
+        </div>
+      </div>
+      <div class="action-tile" onclick="navigate('queue')">
+        <div class="action-icon orange">👥</div>
+        <div class="action-text">
+          <h3 data-i18n="tile2_title">See the Queue</h3>
+          <p data-i18n="tile2_sub">Check who is waiting and how long it will take</p>
+        </div>
+      </div>
+      <div class="action-tile" onclick="navigate('doctor')">
+        <div class="action-icon blue">👨‍⚕️</div>
+        <div class="action-text">
+          <h3 data-i18n="tile3_title">Doctor's View</h3>
+          <p data-i18n="tile3_sub">Patient summaries and risk scores before consultation</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- ======== TRIAGE ======== -->
+<div class="page" id="page-triage">
+  <div class="triage-container">
+
+    <!-- Step 1: Patient Info -->
+    <div id="triage-step-1">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" data-i18n="reg_title">Patient Registration</h2>
+          <p class="section-sub" data-i18n="reg_sub">Enter patient name and age to begin</p>
+        </div>
+      </div>
+
+      <div class="step-indicator">
+        <div class="step-dot active" id="sd1">1</div>
+        <div class="step-line" id="sl1"></div>
+        <div class="step-dot" id="sd2">2</div>
+        <div class="step-line" id="sl2"></div>
+        <div class="step-dot" id="sd3">3</div>
+      </div>
+
+      <div class="card">
+        <div class="form-group">
+          <label data-i18n="label_name">Full Name</label>
+          <input type="text" id="patientName" data-i18n-placeholder="ph_name" placeholder="e.g. Ramesh Kumar">
+        </div>
+        <div class="form-group">
+          <label data-i18n="label_age">Age</label>
+          <input type="number" id="patientAge" data-i18n-placeholder="ph_age" placeholder="e.g. 45" min="1" max="120">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn btn-primary" onclick="startTriage()" style="flex:1;" data-i18n="btn_begin">
+            Begin →
+          </button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <p class="card-title" style="font-size:0.95rem;" data-i18n="quickadd_title">Quick Add</p>
+        <p class="card-sub" data-i18n="quickadd_sub">Skip questions and type symptoms directly</p>
+        <div class="form-group">
+          <label data-i18n="label_symptoms">Symptoms</label>
+          <input type="text" id="directSymptoms" data-i18n-placeholder="ph_symptoms" placeholder="e.g. chest pain, fever, headache">
+        </div>
+        <button class="btn btn-outline" onclick="quickAdd()" style="width:100%;" data-i18n="btn_quicksubmit">
+          ⚡ Quick Submit
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Questions -->
+    <div id="triage-step-2" style="display:none;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" data-i18n="q_title">Health Questions</h2>
+          <p class="section-sub" data-i18n="q_sub">Answer Yes or No for each question</p>
+        </div>
+        <button class="btn btn-outline" style="font-size:0.82rem;padding:8px 14px;" onclick="resetTriage()" data-i18n="btn_back">← Back</button>
+      </div>
+
+      <div class="step-indicator">
+        <div class="step-dot done" id="sd1b">✓</div>
+        <div class="step-line done" id="sl1b"></div>
+        <div class="step-dot active" id="sd2b">2</div>
+        <div class="step-line" id="sl2b"></div>
+        <div class="step-dot" id="sd3b">3</div>
+      </div>
+
+      <div class="q-progress">
+        <span class="q-progress-label" id="qLabel">Question 1 of 5</span>
+        <div class="progress-bar"><div class="progress-fill" id="qProgress" style="width:0%"></div></div>
+        <span class="q-progress-label" id="qPct">0%</span>
+      </div>
+
+      <div class="question-card">
+        <p class="question-text" id="currentQuestion">Loading…</p>
+        <p class="question-hint" id="questionHint"></p>
+        <div class="answer-btns">
+          <button class="answer-btn yes" onclick="answerQuestion('yes')" data-i18n="btn_yes">✓ Yes</button>
+          <button class="answer-btn no" onclick="answerQuestion('no')" data-i18n="btn_no">✗ No</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Result -->
+    <div id="triage-step-3" style="display:none;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" data-i18n="result_title">Triage Result</h2>
+          <p class="section-sub" data-i18n="result_sub">Patient has been added to the queue</p>
+        </div>
+      </div>
+
+      <div class="step-indicator">
+        <div class="step-dot done">✓</div>
+        <div class="step-line done"></div>
+        <div class="step-dot done">✓</div>
+        <div class="step-line done"></div>
+        <div class="step-dot active">3</div>
+      </div>
+
+      <div id="resultContent"></div>
+
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-primary" onclick="navigate('queue')" style="flex:1;" data-i18n="btn_viewqueue">View Queue →</button>
+        <button class="btn btn-outline" onclick="resetTriage()" data-i18n="btn_newpatient">New Patient</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======== QUEUE ======== -->
+<div class="page" id="page-queue">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title" data-i18n="queue_title">Patient Queue</h2>
+      <p class="section-sub" data-i18n="queue_sub">Sorted by priority — emergency first</p>
+    </div>
+    <button class="btn btn-outline" onclick="loadQueue()" style="font-size:0.82rem;padding:8px 14px;" data-i18n="btn_refresh">🔄 Refresh</button>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="padding:8px 16px;background:var(--danger-light);border:1.5px solid var(--danger);border-radius:8px;font-size:0.78rem;font-weight:600;color:var(--danger);" data-i18n="legend_em">🔴 Emergency (70–100)</div>
+    <div style="padding:8px 16px;background:var(--warn-light);border:1.5px solid var(--warn);border-radius:8px;font-size:0.78rem;font-weight:600;color:var(--warn);" data-i18n="legend_pri">🟡 Priority (40–69)</div>
+    <div style="padding:8px 16px;background:var(--accent-light);border:1.5px solid var(--accent);border-radius:8px;font-size:0.78rem;font-weight:600;color:var(--accent);" data-i18n="legend_bas">🟢 Basic (0–39)</div>
+  </div>
+
+  <div class="queue-grid" id="queueList">
+    <div class="queue-empty">
+      <div class="icon">⏳</div>
+      <p data-i18n="loading">Loading…</p>
+    </div>
+  </div>
+</div>
+
+<!-- ======== DOCTOR DASH ======== -->
+<div class="page" id="page-doctor">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title" data-i18n="doc_title">Doctor Dashboard</h2>
+      <p class="section-sub" data-i18n="doc_sub">Pre-consultation insights for every waiting patient</p>
+    </div>
+    <button class="btn btn-outline" onclick="loadDoctorDash()" style="font-size:0.82rem;padding:8px 14px;" data-i18n="btn_refresh">🔄 Refresh</button>
+  </div>
+
+  <div class="doctor-grid" id="doctorList">
+    <div class="queue-empty" style="grid-column:1/-1;">
+      <div class="icon">👨‍⚕️</div>
+      <p data-i18n="loading">Loading…</p>
+    </div>
+  </div>
+</div>
+
+<!-- ======== STATUS ======== -->
+<div class="page" id="page-status">
+  <div class="status-container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title" data-i18n="status_title">Check Your Status</h2>
+        <p class="section-sub" data-i18n="status_sub">Enter your Patient ID to see your queue position</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="form-group">
+        <label data-i18n="label_pid">Patient ID</label>
+        <input type="number" id="statusId" data-i18n-placeholder="ph_pid" placeholder="e.g. 7" min="1">
+      </div>
+      <button class="btn btn-primary" onclick="checkStatus()" style="width:100%;" data-i18n="btn_checkstatus">Check Status →</button>
+    </div>
+
+    <div id="statusResult" style="display:none;">
+      <div class="card">
+        <div class="status-display">
+          <span class="status-icon" id="statusIcon">⏳</span>
+          <h3 class="status-title" id="statusTitle">Waiting</h3>
+          <span class="status-pill waiting" id="statusPill">waiting</span>
+          <div class="divider"></div>
+          <div class="info-row"><span class="label" data-i18n="label_priority">Priority Level</span><span class="val" id="statusPriority">—</span></div>
+          <div class="info-row"><span class="label" data-i18n="label_riskscore">Risk Score</span><span class="val" id="statusScore">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ---- CONFIG ----
+const API = 'http://localhost:8000'; // Change to your backend URL
+
+// ---- STATE ----
+let answers = {};
+let currentQuestion = null;
+let questionList = [];
+let lowData = false;
+let patientName = '', patientAge = 0;
+let qIndex = 0;
+
+// All questions matching backend
+const QUESTIONS = [
+  "Do you have chest pain?",
+  "Do you have breathing issues?",
+  "Do you have fever?",
+  "Do you have headache?",
+  "Are you unconscious?"
+];
+
+const HINDI_QUESTIONS = [
+  "क्या आपके सीने में दर्द है?",
+  "क्या आपको साँस लेने में तकलीफ है?",
+  "क्या आपको बुखार है?",
+  "क्या आपके सिर में दर्द है?",
+  "क्या मरीज़ बेहोश है?"
+];
+
+const HINDI_HINTS = {
+  "Do you have chest pain?": "क्या आपके सीने में दर्द है?",
+  "Do you have breathing issues?": "क्या आपको साँस लेने में तकलीफ है?",
+  "Do you have fever?": "क्या आपको बुखार है?",
+  "Do you have headache?": "क्या आपके सिर में दर्द है?",
+  "Are you unconscious?": "क्या मरीज़ बेहोश है?"
+};
+
+// ---- NAVIGATION ----
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+
+  if (page === 'queue') loadQueue();
+  if (page === 'doctor') loadDoctorDash();
+  if (page === 'home') loadHomeStats();
+}
+
+// ---- LANGUAGE ----
+let lang = 'en';
+
+const T = {
+  en: {
+    nav_home: 'Home', nav_triage: 'Triage', nav_queue: 'Queue', nav_doctor: 'Doctor', nav_status: 'Status',
+    hero_tagline: 'Rural Health Service', hero_sub: 'Welcome. Tell us your symptoms and we will connect you to a doctor.',
+    stat_waiting: 'Waiting', stat_emergency: 'Emergency', stat_basic: 'Basic',
+    tile1_title: 'Register Patient', tile1_sub: 'Answer a few simple health questions to get your priority number',
+    tile2_title: 'See the Queue', tile2_sub: 'Check who is waiting and how long it will take',
+    tile3_title: "Doctor's View", tile3_sub: 'Patient summaries and risk scores before consultation',
+    reg_title: 'Patient Registration', reg_sub: 'Enter patient name and age to begin',
+    label_name: 'Full Name', label_age: 'Age', label_symptoms: 'Symptoms', label_pid: 'Patient ID',
+    label_priority: 'Priority Level', label_riskscore: 'Risk Score',
+    ph_name: 'e.g. Ramesh Kumar', ph_age: 'e.g. 45', ph_symptoms: 'e.g. chest pain, fever, headache', ph_pid: 'e.g. 7',
+    btn_begin: 'Begin →', btn_quicksubmit: '⚡ Quick Submit', btn_back: '← Back',
+    btn_yes: '✓ Yes', btn_no: '✗ No',
+    btn_viewqueue: 'View Queue →', btn_newpatient: 'New Patient',
+    btn_refresh: '🔄 Refresh', btn_checkstatus: 'Check Status →',
+    quickadd_title: 'Quick Add', quickadd_sub: 'Skip questions and type symptoms directly',
+    q_title: 'Health Questions', q_sub: 'Answer Yes or No for each question',
+    result_title: 'Triage Result', result_sub: 'Patient has been added to the queue',
+    queue_title: 'Patient Queue', queue_sub: 'Sorted by priority — emergency first',
+    legend_em: '🔴 Emergency (70–100)', legend_pri: '🟡 Priority (40–69)', legend_bas: '🟢 Basic (0–39)',
+    doc_title: 'Doctor Dashboard', doc_sub: 'Pre-consultation insights for every waiting patient',
+    status_title: 'Check Your Status', status_sub: 'Enter your Patient ID to see your queue position',
+    loading: 'Loading…',
+    q_of: 'Question', q_of2: 'of',
+    mark_treated: '✓ Mark as Treated',
+    rec_action: 'Recommended Action', risk_factors: 'RISK FACTORS', symptoms_label: 'Symptoms',
+    save_pid: 'Save your Patient ID:', track_msg: 'to track your queue status',
+    no_waiting: 'No patients currently waiting', risk_score_label: 'RISK SCORE',
+    no_symptoms: 'No symptoms recorded',
+    status_waiting: 'Currently Waiting', status_done: 'Treatment Complete', status_notfound: 'Patient Not Found',
+    toast_registered: 'Patient registered! Priority:',
+    toast_treated: 'Patient marked as treated ✓',
+    toast_enter_name: 'Please enter a valid name and age.',
+    toast_enter_symptoms: 'Please enter symptoms.',
+    toast_enter_pid: 'Please enter a Patient ID.',
+  },
+  hi: {
+    nav_home: 'होम', nav_triage: 'ट्राइएज', nav_queue: 'कतार', nav_doctor: 'डॉक्टर', nav_status: 'स्थिति',
+    hero_tagline: 'ग्रामीण स्वास्थ्य सेवा', hero_sub: 'आपका स्वागत है। अपनी तकलीफ बताएं — हम डॉक्टर तक पहुँचाएंगे।',
+    stat_waiting: 'प्रतीक्षारत', stat_emergency: 'आपातकाल', stat_basic: 'सामान्य',
+    tile1_title: 'मरीज़ दर्ज करें', tile1_sub: 'कुछ सवालों के जवाब दें और अपना प्राथमिकता नंबर पाएं',
+    tile2_title: 'कतार देखें', tile2_sub: 'देखें कौन इंतज़ार कर रहा है और कितना समय लगेगा',
+    tile3_title: 'डॉक्टर का दृश्य', tile3_sub: 'परामर्श से पहले मरीज़ों का सारांश और जोखिम स्कोर',
+    reg_title: 'मरीज़ पंजीकरण', reg_sub: 'शुरू करने के लिए नाम और उम्र भरें',
+    label_name: 'पूरा नाम', label_age: 'उम्र', label_symptoms: 'लक्षण / बीमारी', label_pid: 'मरीज़ नंबर',
+    label_priority: 'प्राथमिकता स्तर', label_riskscore: 'जोखिम स्कोर',
+    ph_name: 'जैसे: रमेश कुमार', ph_age: 'जैसे: ४५', ph_symptoms: 'जैसे: सीने में दर्द, बुखार, सिरदर्द', ph_pid: 'जैसे: ७',
+    btn_begin: 'शुरू करें →', btn_quicksubmit: '⚡ सीधे जमा करें', btn_back: '← वापस',
+    btn_yes: '✓ हाँ', btn_no: '✗ नहीं',
+    btn_viewqueue: 'कतार देखें →', btn_newpatient: 'नया मरीज़',
+    btn_refresh: '🔄 ताज़ा करें', btn_checkstatus: 'स्थिति देखें →',
+    quickadd_title: 'सीधे दर्ज करें', quickadd_sub: 'सवाल छोड़ें और सीधे लक्षण लिखें',
+    q_title: 'स्वास्थ्य सवाल', q_sub: 'हर सवाल का हाँ या नहीं में जवाब दें',
+    result_title: 'ट्राइएज परिणाम', result_sub: 'मरीज़ को कतार में जोड़ा गया है',
+    queue_title: 'मरीज़ की कतार', queue_sub: 'प्राथमिकता के अनुसार — आपातकाल पहले',
+    legend_em: '🔴 आपातकाल (70–100)', legend_pri: '🟡 प्राथमिकता (40–69)', legend_bas: '🟢 सामान्य (0–39)',
+    doc_title: 'डॉक्टर डैशबोर्ड', doc_sub: 'परामर्श से पहले हर प्रतीक्षारत मरीज़ की जानकारी',
+    status_title: 'अपनी स्थिति देखें', status_sub: 'अपना मरीज़ नंबर डालें और अपनी कतार की स्थिति जानें',
+    loading: 'लोड हो रहा है…',
+    q_of: 'सवाल', q_of2: 'में से',
+    mark_treated: '✓ इलाज हुआ',
+    rec_action: 'सुझाया गया उपाय', risk_factors: 'जोखिम कारण', symptoms_label: 'लक्षण',
+    save_pid: 'अपना मरीज़ नंबर सुरक्षित करें:', track_msg: 'अपनी स्थिति जाँचने के लिए',
+    no_waiting: 'अभी कोई मरीज़ प्रतीक्षारत नहीं है', risk_score_label: 'जोखिम स्कोर',
+    no_symptoms: 'कोई लक्षण दर्ज नहीं',
+    status_waiting: 'प्रतीक्षारत', status_done: 'उपचार पूर्ण', status_notfound: 'मरीज़ नहीं मिला',
+    toast_registered: 'मरीज़ दर्ज! प्राथमिकता:',
+    toast_treated: 'मरीज़ का इलाज दर्ज हो गया ✓',
+    toast_enter_name: 'कृपया सही नाम और उम्र डालें।',
+    toast_enter_symptoms: 'कृपया लक्षण लिखें।',
+    toast_enter_pid: 'कृपया मरीज़ नंबर डालें।',
+  }
+};
+
+function t(key) { return T[lang][key] || T['en'][key] || key; }
+
+function applyLang() {
+  // text nodes
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  // placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  // switcher button labels
+  if (lang === 'en') {
+    document.getElementById('langActive').textContent = 'EN';
+    document.getElementById('langInactive').textContent = 'हि';
+  } else {
+    document.getElementById('langActive').textContent = 'हि';
+    document.getElementById('langInactive').textContent = 'EN';
+  }
+  // re-render dynamic lists if visible
+  if (document.getElementById('page-queue').classList.contains('active')) loadQueue();
+  if (document.getElementById('page-doctor').classList.contains('active')) loadDoctorDash();
+  // update question if mid-flow
+  if (document.getElementById('triage-step-2').style.display !== 'none') showQuestion(qIndex);
+}
+
+function toggleLang() {
+  lang = lang === 'en' ? 'hi' : 'en';
+  applyLang();
+}
+
+// ---- TOAST ----
+function toast(msg, dur = 3000) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), dur);
+}
+
+// ---- LOADING ----
+function setLoading(show, text = 'Processing…') {
+  const o = document.getElementById('loadingOverlay');
+  document.getElementById('loadingText').textContent = text;
+  o.classList.toggle('active', show);
+}
+
+// ---- API CALL ----
+async function api(path, method = 'GET', params = null) {
+  let url = API + path;
+  let options = { method, headers: { 'Content-Type': 'application/json' } };
+
+  if (method === 'POST' && params) {
+    // FastAPI query params style
+    const qs = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (typeof v === 'object') qs.append(k, JSON.stringify(v));
+      else qs.append(k, v);
+    });
+    url += '?' + qs.toString();
+  }
+
+  try {
+    const r = await fetch(url, options);
+    return await r.json();
+  } catch (e) {
+    // Offline mode - return simulated data
+    return simulateResponse(path, params);
+  }
+}
+
+// ---- DEMO/OFFLINE SIMULATION ----
+let demoPatients = [];
+let demoQueue = [];
+
+function simulateResponse(path, params) {
+  if (path === '/queue') {
+    return demoQueue.map((p, i) => ({
+      position: i + 1,
+      patient_id: p.patient_id,
+      name: p.name,
+      age: p.age,
+      score: p.score,
+      priority: p.priority,
+      estimated_wait_time: `${Math.max(1, i * 5)} minutes`
+    }));
+  }
+  if (path === '/doctor_dashboard') {
+    return demoQueue.map(p => ({
+      name: p.name,
+      age: p.age,
+      symptoms: p.symptoms,
+      risk_score: p.score,
+      priority: p.priority,
+      reasons: p.reasons,
+      summary: p.summary
+    }));
+  }
+  if (path.startsWith('/patient_status/')) {
+    const id = parseInt(path.split('/').pop());
+    const pt = demoQueue.find(p => p.patient_id == id);
+    if (!pt) return { error: 'Patient not found' };
+    return { status: pt.status || 'waiting', priority: pt.priority, score: pt.score };
+  }
+  if (path.startsWith('/complete/')) {
+    const id = parseInt(path.split('/').pop());
+    demoQueue = demoQueue.filter(p => p.patient_id != id);
+    return { message: 'Patient treated successfully' };
+  }
+  if (path === '/triage/submit') {
+    return simulateTriage(params);
+  }
+  if (path === '/add_patient') {
+    return simulateTriage(params);
+  }
+  return {};
+}
+
+function simulateTriage(params) {
+  const symptoms = (params?.symptoms || params?.answers_symptoms || '').toLowerCase();
+  const age = parseInt(params?.age) || 30;
+  const name = params?.name || 'Patient';
+
+  let score = 0, reasons = [];
+  if (symptoms.includes('chest pain')) { score += 40; reasons.push('Chest pain (+40)'); }
+  if (symptoms.includes('breathing')) { score += 30; reasons.push('Breathing issue (+30)'); }
+  if (symptoms.includes('unconscious')) { score += 50; reasons.push('Unconscious (+50)'); }
+  if (symptoms.includes('fever')) { score += 10; reasons.push('Fever (+10)'); }
+  if (symptoms.includes('headache')) { score += 5; reasons.push('Headache (+5)'); }
+  if (age > 60) { score += 20; reasons.push('Age risk (+20)'); }
+  score = Math.min(score, 100);
+
+  let priority = score >= 70 ? 'emergency' : score >= 40 ? 'priority' : 'basic';
+  let action = priority === 'emergency'
+    ? 'Immediate hospital visit / ambulance recommended'
+    : priority === 'priority'
+    ? 'Visit clinic soon or take early consultation'
+    : 'Basic teleconsultation is sufficient';
+
+  const patient_id = Date.now() % 10000;
+
+  const patient = { patient_id, name, age, symptoms, score, priority, reasons,
+    summary: `Patient (${age} yrs). Symptoms: ${symptoms}. Risk Score: ${score}/100 (${priority}).`,
+    status: 'waiting'
+  };
+
+  // Insert sorted by score desc
+  const idx = demoQueue.findIndex(p => p.score < score);
+  if (idx === -1) demoQueue.push(patient);
+  else demoQueue.splice(idx, 0, patient);
+
+  return { patient_id, symptoms, score, priority, action, reasons };
+}
+
+// ---- HOME STATS ----
+async function loadHomeStats() {
+  const data = demoQueue;
+  document.getElementById('stat-waiting').textContent = data.length;
+  document.getElementById('stat-emergency').textContent = data.filter(p => p.priority === 'emergency').length;
+  document.getElementById('stat-basic').textContent = data.filter(p => p.priority === 'basic').length;
+}
+
+// ---- TRIAGE ----
+function startTriage() {
+  patientName = document.getElementById('patientName').value.trim();
+  patientAge = parseInt(document.getElementById('patientAge').value);
+
+  if (!patientName || !patientAge || patientAge < 1) {
+    toast('Please enter a valid name and age.');
+    return;
+  }
+
+  answers = {};
+  qIndex = 0;
+
+  document.getElementById('triage-step-1').style.display = 'none';
+  document.getElementById('triage-step-2').style.display = 'block';
+
+  showQuestion(qIndex);
+}
+
+function showQuestion(idx) {
+  if (idx >= QUESTIONS.length) {
+    submitTriage();
+    return;
+  }
+  const q = QUESTIONS[idx];
+  document.getElementById('currentQuestion').textContent = lang === 'hi' ? HINDI_QUESTIONS[idx] : q;
+  document.getElementById('questionHint').textContent = lang === 'hi' ? q : HINDI_QUESTIONS[idx];
+  const pct = Math.round((idx / QUESTIONS.length) * 100);
+  document.getElementById('qProgress').style.width = pct + '%';
+  document.getElementById('qPct').textContent = pct + '%';
+  document.getElementById('qLabel').textContent = `${t('q_of')} ${idx + 1} ${t('q_of2')} ${QUESTIONS.length}`;
+}
+
+function answerQuestion(val) {
+  const q = QUESTIONS[qIndex];
+  answers[q] = val;
+  qIndex++;
+  showQuestion(qIndex);
+}
+
+async function submitTriage() {
+  setLoading(true, 'Analysing symptoms…');
+  document.getElementById('triage-step-2').style.display = 'none';
+
+  // Build symptoms from answers
+  let sympList = [];
+  if (answers["Do you have chest pain?"] === 'yes') sympList.push('chest pain');
+  if (answers["Do you have breathing issues?"] === 'yes') sympList.push('breathing');
+  if (answers["Do you have fever?"] === 'yes') sympList.push('fever');
+  if (answers["Do you have headache?"] === 'yes') sympList.push('headache');
+  if (answers["Are you unconscious?"] === 'yes') sympList.push('unconscious');
+
+  const params = { name: patientName, age: patientAge, symptoms: sympList.join(' ') };
+  const data = simulateTriage(params);
+  data.symptoms = params.symptoms;
+
+  setLoading(false);
+  showResult(data);
+}
+
+async function quickAdd() {
+  const name = document.getElementById('patientName').value.trim() || 'Quick Patient';
+  const age = parseInt(document.getElementById('patientAge').value) || 30;
+  const symptoms = document.getElementById('directSymptoms').value.trim();
+
+  if (!symptoms) { toast('Please enter symptoms.'); return; }
+
+  setLoading(true, 'Registering patient…');
+  const data = simulateTriage({ name, age, symptoms });
+  data.symptoms = symptoms;
+  setLoading(false);
+  showResult(data);
+
+  document.getElementById('triage-step-1').style.display = 'none';
+  document.getElementById('triage-step-3').style.display = 'block';
+}
+
+function showResult(data) {
+  document.getElementById('triage-step-1').style.display = 'none';
+  document.getElementById('triage-step-2').style.display = 'none';
+  document.getElementById('triage-step-3').style.display = 'block';
+
+  const p = data.priority || 'basic';
+  const score = data.score || 0;
+  const pLabel = p === 'emergency' ? '🔴 Emergency' : p === 'priority' ? '🟡 Priority' : '🟢 Basic';
+  const pColor = p === 'emergency' ? '#c1292e' : p === 'priority' ? '#e07b39' : '#2d6a4f';
+  const circumference = 2 * Math.PI * 28;
+  const offset = circumference - (score / 100) * circumference;
+
+  const reasonsHtml = (data.reasons || []).map(r =>
+    `<span class="reason-tag">${r}</span>`
+  ).join('');
+
+  document.getElementById('resultContent').innerHTML = `
+    <div class="result-card">
+      <div class="result-header ${p}">
+        <div class="score-ring">
+          <svg width="72" height="72" viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r="28" fill="none" stroke="var(--border)" stroke-width="5"/>
+            <circle cx="36" cy="36" r="28" fill="none" stroke="${pColor}" stroke-width="5"
+              stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+              stroke-linecap="round"/>
+          </svg>
+          <div class="score-num">${score}</div>
+        </div>
+        <div>
+          <span class="priority-badge ${p}">${pLabel}</span>
+          <p style="font-size:0.82rem;color:var(--text2);margin-top:6px;">Risk Score: <strong>${score}/100</strong></p>
+          <p style="font-size:0.78rem;color:var(--text3);">Patient ID: <span style="font-family:'JetBrains Mono',monospace;font-weight:600;">#${data.patient_id || '—'}</span></p>
+        </div>
+      </div>
+      <div class="result-body">
+        <div class="info-row"><span class="label">Symptoms</span><span class="val">${data.symptoms || '—'}</span></div>
+        <div style="margin:12px 0 8px;">
+          <p style="font-size:0.78rem;font-weight:600;color:var(--text3);margin-bottom:6px;">RISK FACTORS</p>
+          <div class="reason-tags">${reasonsHtml || '<span style="color:var(--text3);font-size:0.82rem;">No significant risk factors</span>'}</div>
+        </div>
+        <div class="action-box">
+          <div class="icon">${p === 'emergency' ? '🚨' : p === 'priority' ? '⚠️' : 'ℹ️'}</div>
+          <div>
+            <h4>Recommended Action</h4>
+            <p>${data.action || '—'}</p>
+          </div>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text3);margin-top:12px;text-align:center;">
+          Save your Patient ID: <strong style="font-family:'JetBrains Mono',monospace;">#${data.patient_id || '—'}</strong> to track your queue status
+        </p>
+      </div>
+    </div>
+  `;
+
+  toast(`Patient registered! Priority: ${p.toUpperCase()}`);
+  loadHomeStats();
+}
+
+function resetTriage() {
+  answers = {};
+  qIndex = 0;
+  patientName = '';
+  patientAge = 0;
+  document.getElementById('patientName').value = '';
+  document.getElementById('patientAge').value = '';
+  document.getElementById('directSymptoms').value = '';
+
+  document.getElementById('triage-step-1').style.display = 'block';
+  document.getElementById('triage-step-2').style.display = 'none';
+  document.getElementById('triage-step-3').style.display = 'none';
+
+  navigate('triage');
+}
+
+// ---- QUEUE ----
+async function loadQueue() {
+  const list = document.getElementById('queueList');
+  list.innerHTML = '';
+
+  const data = demoQueue.filter(p => (p.status || 'waiting') === 'waiting');
+
+  if (!data.length) {
+    list.innerHTML = `<div class="queue-empty"><div class="icon">✅</div><p>${t('no_waiting')}</p></div>`;
+    return;
+  }
+
+  data.forEach((p, i) => {
+    const pColor = p.priority === 'emergency' ? 'var(--danger)' : p.priority === 'priority' ? 'var(--warn)' : 'var(--bas-color)';
+    const pEmoji = p.priority === 'emergency' ? '🔴' : p.priority === 'priority' ? '🟡' : '🟢';
+
+    const item = document.createElement('div');
+    item.className = 'queue-item';
+    item.style.borderLeft = `4px solid ${pColor}`;
+    item.innerHTML = `
+      <div class="queue-pos">${i + 1}</div>
+      <div>
+        <div class="queue-name">${p.name}</div>
+        <div class="queue-meta">${p.age} yrs · ${p.symptoms || '—'}</div>
+      </div>
+      <span class="priority-badge ${p.priority}">${pEmoji} ${p.priority}</span>
+      <div class="queue-score">${p.score}/100</div>
+      <div class="queue-wait">~${Math.max(1, i * 5)} min</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ---- DOCTOR DASHBOARD ----
+async function loadDoctorDash() {
+  const list = document.getElementById('doctorList');
+  list.innerHTML = '';
+
+  const data = demoQueue.filter(p => (p.status || 'waiting') === 'waiting');
+
+  if (!data.length) {
+    list.innerHTML = `<div class="queue-empty" style="grid-column:1/-1;"><div class="icon">✅</div><p>${t('no_waiting')}</p></div>`;
+    return;
+  }
+
+  data.forEach(p => {
+    const sympChips = (p.symptoms || '').split(' ').filter(Boolean).map(s => {
+      const cls = ['chest', 'unconscious', 'breathing'].some(k => s.includes(k)) ? 'red'
+                : s === 'fever' ? 'orange' : 'green';
+      return `<span class="symptom-chip ${cls}">${s}</span>`;
+    }).join('');
+
+    const reasonsHtml = (p.reasons || []).map(r => `<span class="reason-tag">${r}</span>`).join('');
+
+    const card = document.createElement('div');
+    card.className = 'doctor-card';
+    card.innerHTML = `
+      <div class="doctor-card-header">
+        <div class="patient-avatar">${p.name.charAt(0)}</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:0.95rem;">${p.name}</div>
+          <div style="font-size:0.78rem;color:var(--text3);">${p.age} yrs</div>
+        </div>
+        <span class="priority-badge ${p.priority}" style="font-size:0.68rem;">
+          ${p.priority === 'emergency' ? '🔴' : p.priority === 'priority' ? '🟡' : '🟢'} ${p.priority}
+        </span>
+      </div>
+      <div class="doctor-card-body">
+        <div class="symptom-chips">${sympChips || `<span style="font-size:0.78rem;color:var(--text3);">${t('no_symptoms')}</span>`}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:0.78rem;color:var(--text3);font-weight:600;">${t('risk_score_label')}</span>
+          <div style="flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:${p.score}%;background:${p.priority === 'emergency' ? 'var(--danger)' : p.priority === 'priority' ? 'var(--warn)' : 'var(--accent)'};border-radius:99px;"></div>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:600;">${p.score}/100</span>
+        </div>
+        <div class="reason-tags" style="margin-bottom:12px;">${reasonsHtml}</div>
+        <div class="summary-text">${p.summary}</div>
+        <button class="complete-btn" onclick="completePatient(${p.patient_id})">${t('mark_treated')}</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+async function completePatient(id) {
+  demoQueue = demoQueue.filter(p => p.patient_id != id);
+  toast('Patient marked as treated ✓');
+  loadDoctorDash();
+  loadHomeStats();
+}
+
+// ---- STATUS ----
+async function checkStatus() {
+  const id = document.getElementById('statusId').value;
+  if (!id) { toast('Please enter a Patient ID.'); return; }
+
+  const pt = demoQueue.find(p => p.patient_id == id);
+  const result = document.getElementById('statusResult');
+  result.style.display = 'block';
+
+  if (!pt) {
+    document.getElementById('statusIcon').textContent = '❓';
+    document.getElementById('statusTitle').textContent = 'Patient Not Found';
+    document.getElementById('statusPill').textContent = 'unknown';
+    document.getElementById('statusPill').className = 'status-pill';
+    document.getElementById('statusPriority').textContent = '—';
+    document.getElementById('statusScore').textContent = '—';
+    return;
+  }
+
+  const status = pt.status || 'waiting';
+  const icons = { waiting: '⏳', done: '✅' };
+
+  document.getElementById('statusIcon').textContent = icons[status] || '❓';
+  document.getElementById('statusTitle').textContent = status === 'done' ? 'Treatment Complete' : 'Currently Waiting';
+  document.getElementById('statusPill').textContent = status;
+  document.getElementById('statusPill').className = `status-pill ${status}`;
+  document.getElementById('statusPriority').textContent = pt.priority.toUpperCase();
+  document.getElementById('statusScore').textContent = `${pt.score}/100`;
+}
+
+// ---- INIT ----
+loadHomeStats();
+</script>
+</body>
+</html>

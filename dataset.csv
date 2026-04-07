@@ -1,0 +1,6 @@
+symptoms,risk_score,priority
+chest pain breathing,70,emergency
+fever headache,15,basic
+unconscious breathing,80,emergency
+headache,5,basic
+chest pain fever,50,priority
