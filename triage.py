@@ -1,4 +1,7 @@
 import csv
+import os
+
+DATASET_PATH = os.path.join(os.path.dirname(__file__), "dataset.csv")
 
 def calculate_score(symptoms, age):
     if not symptoms.strip():
@@ -6,7 +9,6 @@ def calculate_score(symptoms, age):
 
     score = 0
     reasons = []
-
     symptoms = symptoms.lower()
 
     if "chest pain" in symptoms:
@@ -45,7 +47,6 @@ def get_priority(score):
         return "basic"
 
 
-# Action Recommendation
 def get_action(priority):
     if priority == "emergency":
         return "Immediate hospital visit / ambulance recommended"
@@ -55,35 +56,22 @@ def get_action(priority):
         return "Basic teleconsultation is sufficient"
 
 
-# Improved dataset matching
 def get_similar_case(symptoms, age):
-    best_match = None
-
     try:
-        with open("dataset.csv", "r") as file:
+        with open(DATASET_PATH, "r") as file:
             reader = csv.DictReader(file)
 
             for row in reader:
-                dataset_words = row["symptoms"].split()
-
-                if any(word in symptoms for word in dataset_words):
-                    best_match = row
-                    break
-
+                if any(word in symptoms for word in row["symptoms"].split()):
+                    return row
     except Exception as e:
         print("Dataset error:", e)
 
-    return best_match
+    return None
 
 
 def generate_summary(name, age, symptoms, score, priority, similar_case=None):
-    summary = ""
-
-    if age > 60:
-        summary += f"Elderly patient ({age} yrs). "
-    else:
-        summary += f"Patient ({age} yrs). "
-
+    summary = f"Patient {name} ({age} yrs). "
     summary += f"Symptoms: {symptoms}. "
     summary += f"Risk Score: {score}/100 ({priority}). "
 
@@ -95,33 +83,12 @@ def generate_summary(name, age, symptoms, score, priority, similar_case=None):
         summary += "Condition appears stable. "
 
     if similar_case:
-        summary += f"Similar case found: {similar_case['symptoms']} (risk {similar_case['risk_score']}). "
+        summary += f"Similar case: {similar_case['symptoms']}."
 
     return summary
 
 
-# Adaptive questioning
-def get_next_question(answers):
-    questions = [
-        "Do you have chest pain?",
-        "Do you have breathing issues?",
-        "Do you have fever?",
-        "Do you have headache?",
-        "Are you unconscious?"
-    ]
-
-    for q in questions:
-        if q not in answers:
-            return q
-
-    return None
-
-
 def build_symptoms_from_answers(answers):
-    # If it came from the Quick Add text box, just return that text!
-    if "symptoms_override" in answers:
-        return answers["symptoms_override"]
-
     symptoms = []
 
     if answers.get("Do you have chest pain?") == "yes":

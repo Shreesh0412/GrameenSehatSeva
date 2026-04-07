@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from database import conn, cursor
 from triage import (
     calculate_score, get_priority,
@@ -18,62 +18,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ------------------ TRIAGE FLOW ------------------
-
-@app.post("/triage/start")
-def start_triage():
-    return {"question": "Do you have chest pain?", "answers": {}}
-
-
-@app.post("/triage/next")
-def next_question(answers: dict):
-    question = get_next_question(answers)
-
-    if question:
-        return {"question": question, "answers": answers}
-
-    symptoms = build_symptoms_from_answers(answers)
-
-    return {
-        "message": "Triage complete",
-        "symptoms": symptoms,
-        "answers": answers
-    }
-
+# ------------------ TRIAGE ------------------
 
 @app.post("/triage/submit")
-def submit_triage(name: str, age: int, answers: dict):
-    symptoms = build_symptoms_from_answers(answers)
+def submit_triage(name: str, age: int, answers: dict = Body(...)):
+    try:
+        symptoms = build_symptoms_from_answers(answers)
 
-    cursor.execute(
-        "INSERT INTO patients (name, age, symptoms) VALUES (?, ?, ?)",
-        (name, age, symptoms)
-    )
-    conn.commit()
+        cursor.execute(
+            "INSERT INTO patients (name, age, symptoms) VALUES (?, ?, ?)",
+            (name, age, symptoms)
+        )
+        conn.commit()
 
-    patient_id = cursor.lastrowid
+        patient_id = cursor.lastrowid
 
-    score, reasons = calculate_score(symptoms, age)
-    priority = get_priority(score)
-    action = get_action(priority)
-    similar_case = get_similar_case(symptoms, age)
+        score, reasons = calculate_score(symptoms, age)
+        priority = get_priority(score)
+        action = get_action(priority)
+        similar_case = get_similar_case(symptoms, age)
 
-    cursor.execute(
-        "INSERT INTO queue (patient_id, score, priority) VALUES (?, ?, ?)",
-        (patient_id, score, priority)
-    )
-    conn.commit()
+        cursor.execute(
+            "INSERT INTO queue (patient_id, score, priority) VALUES (?, ?, ?)",
+            (patient_id, score, priority)
+        )
+        conn.commit()
 
-    summary = generate_summary(age, symptoms, score, priority, similar_case)
+        # ✅ FIXED ARGUMENT ORDER
+        summary = generate_summary(name, age, symptoms, score, priority, similar_case)
 
-    return {
-        "patient_id": patient_id,
-        "score": score,
-        "priority": priority,
-        "action": action,
-        "summary": summary,
-        "reasons": reasons
-    }
+        return {
+            "patient_id": patient_id,
+            "score": score,
+            "priority": priority,
+            "action": action,
+            "summary": summary,
+            "reasons": reasons
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
 
 
 # ------------------ STATUS ------------------
