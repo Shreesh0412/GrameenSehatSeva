@@ -1,139 +1,113 @@
-import csv
+from fastapi import FastAPI
+from database import conn, cursor
+from triage import (
+    calculate_score, get_priority,
+    get_similar_case, get_action,
+    get_next_question, build_symptoms_from_answers,
+    generate_summary
+)
+from fastapi.middleware.cors import CORSMiddleware
 
-def calculate_score(symptoms, age):
-    if not symptoms.strip():
-        return 0, ["No symptoms provided"]
+app = FastAPI()
 
-    score = 0
-    reasons = []
+# Allow frontend to communicate with backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    symptoms = symptoms.lower()
+# ------------------ TRIAGE FLOW ------------------
 
-    if "chest pain" in symptoms:
-        score += 40
-        reasons.append("Chest pain (+40)")
-
-    if "breathing" in symptoms:
-        score += 30
-        reasons.append("Breathing issue (+30)")
-
-    if "unconscious" in symptoms:
-        score += 50
-        reasons.append("Unconscious (+50)")
-
-    if "fever" in symptoms:
-        score += 10
-        reasons.append("Fever (+10)")
-
-    if "headache" in symptoms:
-        score += 5
-        reasons.append("Headache (+5)")
-
-    if age > 60:
-        score += 20
-        reasons.append("Age risk (+20)")
-
-    return min(score, 100), reasons
+@app.post("/triage/start")
+def start_triage():
+    return {"question": "Do you have chest pain?", "answers": {}}
 
 
-def get_priority(score):
-    if score >= 70:
-        return "emergency"
-    elif score >= 40:
-        return "priority"
-    else:
-        return "basic"
+@app.post("/triage/next")
+def next_question(answers: dict):
+    question = get_next_question(answers)
+
+    if question:
+        return {"question": question, "answers": answers}
+
+    symptoms = build_symptoms_from_answers(answers)
+
+    return {
+        "message": "Triage complete",
+        "symptoms": symptoms,
+        "answers": answers
+    }
 
 
-# 🔥 NEW: Action Recommendation
-def get_action(priority):
-    if priority == "emergency":
-        return "Immediate hospital visit / ambulance recommended"
-    elif priority == "priority":
-        return "Visit clinic soon or take early consultation"
-    else:
-        return "Basic teleconsultation is sufficient"
+@app.post("/triage/submit")
+def submit_triage(name: str, age: int, answers: dict):
+    # 1. Build symptoms string
+    symptoms = build_symptoms_from_answers(answers)
+
+    # 2. Safely insert patient into database (Fixes the near " " error)
+    cursor.execute(
+        "INSERT INTO patients (name, age, symptoms) VALUES (?, ?, ?)",
+        (name, age, symptoms)
+    )
+    conn.commit()
+
+    patient_id = cursor.lastrowid
+
+    # 3. Calculate scores and priority
+    score, reasons = calculate_score(symptoms, age)
+    priority = get_priority(score)
+    action = get_action(priority)
+    similar_case = get_similar_case(symptoms, age)
+
+    # 4. Safely insert into queue
+    cursor.execute(
+        "INSERT INTO queue (patient_id, score, priority) VALUES (?, ?, ?)",
+        (patient_id, score, priority)
+    )
+    conn.commit()
+
+    # 5. Generate summary
+    summary = generate_summary(name, age, symptoms, score, priority, similar_case)
+
+    return {
+        "patient_id": patient_id,
+        "score": score,
+        "priority": priority,
+        "action": action,
+        "summary": summary,
+        "reasons": reasons
+    }
 
 
-# 🔥 Improved dataset matching
-def get_similar_case(symptoms, age):
-    best_match = None
+# ------------------ STATUS ------------------
 
-    try:
-        with open("dataset.csv", "r") as file:
-            reader = csv.DictReader(file)
+@app.post("/complete/{patient_id}")
+def complete_patient(patient_id: int):
+    cursor.execute(
+        "UPDATE queue SET status = 'done' WHERE patient_id = ?",
+        (patient_id,)
+    )
+    conn.commit()
 
-            for row in reader:
-                dataset_words = row["symptoms"].split()
-
-                if any(word in symptoms for word in dataset_words):
-                    best_match = row
-                    break
-
-    except Exception as e:
-        print("Dataset error:", e)
-
-    return best_match
+    return {"message": "Patient treated successfully"}
 
 
-def generate_summary(name, age, symptoms, score, priority, similar_case=None):
+@app.get("/patient_status/{patient_id}")
+def patient_status(patient_id: int):
+    data = cursor.execute("""
+        SELECT queue.status, queue.priority, queue.score
+        FROM queue
+        WHERE patient_id = ?
+    """, (patient_id,)).fetchone()
 
-    summary = ""
+    if not data:
+        return {"error": "Patient not found"}
 
-    if age > 60:
-        summary += f"Elderly patient ({age} yrs). "
-    else:
-        summary += f"Patient ({age} yrs). "
-
-    summary += f"Symptoms: {symptoms}. "
-    summary += f"Risk Score: {score}/100 ({priority}). "
-
-    if priority == "emergency":
-        summary += "Immediate medical attention required. "
-    elif priority == "priority":
-        summary += "Needs early consultation. "
-    else:
-        summary += "Condition appears stable. "
-
-    if similar_case:
-        summary += f"Similar case found: {similar_case['symptoms']} (risk {similar_case['risk_score']}). "
-
-    return summary
-
-
-# Adaptive questioning
-def get_next_question(answers):
-    questions = [
-        "Do you have chest pain?",
-        "Do you have breathing issues?",
-        "Do you have fever?",
-        "Do you have headache?",
-        "Are you unconscious?"
-    ]
-
-    for q in questions:
-        if q not in answers:
-            return q
-
-    return None
-
-
-def build_symptoms_from_answers(answers):
-    symptoms = []
-
-    if answers.get("Do you have chest pain?") == "yes":
-        symptoms.append("chest pain")
-
-    if answers.get("Do you have breathing issues?") == "yes":
-        symptoms.append("breathing")
-
-    if answers.get("Do you have fever?") == "yes":
-        symptoms.append("fever")
-
-    if answers.get("Do you have headache?") == "yes":
-        symptoms.append("headache")
-
-    if answers.get("Are you unconscious?") == "yes":
-        symptoms.append("unconscious")
-
-    return " ".join(symptoms)
+    return {
+        "status": data[0],
+        "priority": data[1],
+        "score": data[2]
+    }
